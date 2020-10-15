@@ -1,5 +1,4 @@
 <?php
-
 function Products() {
     $data = file_get_contents('./site/products.json');
     $data = json_decode($data, true);
@@ -48,10 +47,10 @@ function addCart() {
 
     $cart[$index] = $_GET['id'];
 
-    setcookie('cart',  json_encode($cart), time() + 86400);
+    setcookie('cart',  json_encode($cart), time() + 86400, '/');
 
-    print_r($_POST);
-    // header('Location:' . $_SERVER['REQUEST_URI']);
+    // print_r($_POST);
+    header('Location:' . $_SERVER['REQUEST_URI']);
     exit;   
 }
 
@@ -70,6 +69,28 @@ function showCart() {
     $data = file_get_contents('./site/products.json');
     $data = json_decode($data, true);
 
+    
+        // Обновление корзины
+    if (!isset($_COOKIE['cart_quantity'])):
+        $cart_quantity = [];
+    else: $cart_quantity = json_decode($_COOKIE['cart_quantity'], true);
+    endif;
+
+
+    if (isset($_POST['cart_update'])):
+        setcookie('cart_quantity', json_encode($cart_quantity), time() - 10, '/');
+
+        $number = 1;
+        if (!empty($_POST['cart_quantity'])): 
+            foreach ($_POST['cart_quantity'] as $index) {
+                $cart_quantity[$number] = $index;
+                $number ++;
+            }
+        endif;
+
+        setcookie('cart_quantity', json_encode($cart_quantity), time() + 86400, '/');
+    endif;
+
     // echo '<pre>';
     // print_r($data);
     // echo '</pre>';
@@ -85,22 +106,43 @@ function showCart() {
     foreach ($cart as $key => $item) {    
         $newID = $item - 1;
         $newData = $data[mb_substr($key, 0, -1)][$newID];
+
+        if (empty($cart_quantity[$count])):
+            $int = 1;
+        else: $int = $cart_quantity[$count];
+        endif;
         echo '
         <div class="cart_bot_item">
             <div class="product_count">' . $count . '</div>
             <div class="product_img" style="background-image:url(' . $newData['img'] . ')"></div>
-            
             <div class="product_name">' . $newData['title'] . '</div>
-            <div class="product_price">Цена: ' . $newData['price'] . '</div>
-         
+            <input type="number" name="cart_quantity[]" min="1" max="20" value="' . $int . '" />
+            <div class="product_price">Цена: ' . (float)$newData['price'] * $int . '</div>        
         </div>
         ';
 
-        $price += (float)$newData['price'];
+        $price += (float)$newData['price'] * $int;
         $count++;
     }
-
+    
+    
     echo '
         <div class="final_price">К оплате: <span>' . $price . '</span> руб.</div>
+            <div class="buttons">
+                <button class="btn1" name="cart_clear">Очистить корзину</button>
+                <button class="btn2" name="cart_update" type="submit">Обновить</button>
+                <button class="btn3" name="cart_order">Оформить заказ</button>
+            </div>
     ';
+
 }
+
+function cartClear() {
+    setcookie('cart_quantity', '', time() - 10, '/');
+    setcookie('cart', '', time() - 10, '/');
+
+    header('Location: /');
+    exit;
+    // echo '111';
+}
+?>

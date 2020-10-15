@@ -1,19 +1,13 @@
 RewriteEngine On
 RewriteBase /
 
-RewriteRule ^cart/ cart.php
+RewriteRule ^cart/$ cart.php [L]
 
-RewriteRule ^(hookah)/$ $1.php?page=$1
-RewriteRule ^(hookah)/([0-9]+)/ hookah.php?page=hookah&id=$2
+RewriteRule ^(hookah|tabac|coal|components|accessories)/$ $1.php?page=$1
+RewriteRule ^(hookah|tabac|coal|components|accessories)/([0-9]+)/ $1.php?page=$1&id=$2
 
-RewriteRule ^(tabac)/$ $1.php?page=$1
-RewriteRule ^(tabac)/([0-9]+)/ tabac.php?page=tabac&id=$2
+RewriteCond %{REQUEST_URI} !/(cart|404|hookah|tabac|coal|components|accessories).php
+RewriteCond %{REQUEST_URI} .+\.(php|html|json)$
+RewriteRule .+ index.php
 
-RewriteRule ^(coal)/$ $1.php?page=$1
-RewriteRule ^(coal)/([0-9]+)/ coal.php?page=coal&id=$2
-
-RewriteRule ^(components)/$ $1.php?page=$1
-RewriteRule ^(components)/([0-9]+)/ components.php?page=components&id=$2
-
-RewriteRule ^(accessories)/$ $1.php?page=$1
-RewriteRule ^(accessories)/([0-9]+)/ accessories.php?page=accessories&id=$2
+ErrorDocument 404 /404.php
